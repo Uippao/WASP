@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -6,10 +6,13 @@ using System.Net;
 using System.Threading;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.IO.Compression;
 
 namespace WASP
 {
-    class WASPLite
+    static class WASPLite
     {
         static void Main(string[] args)
         {
@@ -299,23 +302,40 @@ namespace WASP
             }
         }
 
-        private static void UpdateApplication()
+        private static async void UpdateApplication()
         {
-            string updateUrl = "https://example.com/wasp-latest-version.zip";
-            string tempFilePath = Path.Combine(Path.GetTempPath(), "wasp-update.zip");
+            string owner = "Uippao";
+            string repo = "WASP";
+            string latestReleaseUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
+            string tempFilePath = Path.Combine(Path.GetTempPath(), "WASP-lite.zip");
             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             try
             {
-                using (WebClient client = new WebClient())
+                using (HttpClient client = new HttpClient())
                 {
-                    Console.WriteLine("Downloading the latest version of WASP...");
-                    client.DownloadFile(updateUrl, tempFilePath);
+                    client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("WASP", "1.0"));
+                    Console.WriteLine("Fetching the latest release information...");
+                    HttpResponseMessage response = await client.GetAsync(latestReleaseUrl);
 
-                    Console.WriteLine("Extracting the update...");
-                    System.IO.Compression.ZipFile.ExtractToDirectory(tempFilePath, appDirectory, true);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string json = await response.Content.ReadAsStringAsync();
+                        var release = System.Text.Json.JsonDocument.Parse(json).RootElement;
+                        string downloadUrl = release.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
 
-                    Console.WriteLine("Update successful. Please restart the application.");
+                        Console.WriteLine("Downloading the latest version of WASP...");
+                        await client.DownloadFileTaskAsync(new Uri(downloadUrl), tempFilePath);
+
+                        Console.WriteLine("Extracting the update...");
+                        ZipFile.ExtractToDirectory(tempFilePath, appDirectory, true);
+
+                        Console.WriteLine("Update successful. Please restart the application.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to fetch the latest release information.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -329,6 +349,16 @@ namespace WASP
                 {
                     File.Delete(tempFilePath);
                 }
+            }
+        }
+
+        private static async Task DownloadFileTaskAsync(this HttpClient client, Uri uri, string outputPath)
+        {
+            using (var response = await client.GetAsync(uri))
+            using (var stream = await response.Content.ReadAsStreamAsync())
+            using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+            {
+                await stream.CopyToAsync(fileStream);
             }
         }
 
