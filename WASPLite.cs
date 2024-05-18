@@ -307,8 +307,8 @@ namespace WASP
             string owner = "Uippao";
             string repo = "WASP";
             string latestReleaseUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
-            string tempFilePath = Path.Combine(Path.GetTempPath(), "WASP-lite.zip");
             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string updaterPath = Path.Combine(appDirectory, "Updater.exe");
 
             try
             {
@@ -324,13 +324,11 @@ namespace WASP
                         var release = System.Text.Json.JsonDocument.Parse(json).RootElement;
                         string downloadUrl = release.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
 
-                        Console.WriteLine("Downloading the latest version of WASP...");
-                        await client.DownloadFileTaskAsync(new Uri(downloadUrl), tempFilePath);
+                        Console.WriteLine("Launching the updater...");
+                        Process.Start(updaterPath, $"\"{downloadUrl}\" \"{appDirectory}\"");
 
-                        Console.WriteLine("Extracting the update...");
-                        ZipFile.ExtractToDirectory(tempFilePath, appDirectory, true);
-
-                        Console.WriteLine("Update successful. Please restart the application.");
+                        // Exit the main application to allow the updater to replace files
+                        Environment.Exit(0);
                     }
                     else
                     {
@@ -342,13 +340,6 @@ namespace WASP
             {
                 LogError(ex);
                 Console.WriteLine("Failed to update the application: " + ex.Message);
-            }
-            finally
-            {
-                if (File.Exists(tempFilePath))
-                {
-                    File.Delete(tempFilePath);
-                }
             }
         }
 
