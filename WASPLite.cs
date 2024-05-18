@@ -343,15 +343,6 @@ namespace WASP
             }
         }
 
-        private static async Task DownloadFileTaskAsync(this HttpClient client, Uri uri, string outputPath)
-        {
-            using (var response = await client.GetAsync(uri))
-            using (var stream = await response.Content.ReadAsStreamAsync())
-            using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
-            {
-                await stream.CopyToAsync(fileStream);
-            }
-        }
 
         private static void LogError(Exception ex)
         {
