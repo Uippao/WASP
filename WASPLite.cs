@@ -308,7 +308,7 @@ namespace WASP
             string repo = "WASP";
             string latestReleaseUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
             string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string updaterPath = Path.Combine(appDirectory, "Updater.exe");
+            string updaterPath = Path.Combine(appDirectory, "WASP Lite Updater.exe");
 
             try
             {
