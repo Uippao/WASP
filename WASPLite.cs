@@ -325,7 +325,13 @@ namespace WASP
                         string downloadUrl = release.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
 
                         Console.WriteLine("Launching the updater...");
-                        Process.Start(updaterPath, $"\"{downloadUrl}\" \"{appDirectory}\"");
+                        ProcessStartInfo startInfo = new ProcessStartInfo
+                        {
+                            FileName = updaterPath,
+                            Arguments = $"\"{downloadUrl}\" \"{appDirectory}\"",
+                            UseShellExecute = true
+                        };
+                        Process.Start(startInfo);
 
                         // Exit the main application to allow the updater to replace files
                         Environment.Exit(0);
