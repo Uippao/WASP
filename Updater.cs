@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -13,19 +13,19 @@ namespace WASPUpdater
         {
             if (args.Length < 2)
             {
-                Console.WriteLine("This is meant to be used by the main application. Usage (don't know why you'd need this): Updater.exe <download_url> <target_dir>");
+                Console.WriteLine("Usage: Updater <downloadUrl> <targetDir>");
                 return;
             }
 
             string downloadUrl = args[0];
             string targetDir = args[1];
-            string tempFilePath = Path.Combine(Path.GetTempPath(), "WASP-lite.zip");
+            string tempFilePath = Path.Combine(Path.GetTempPath(), "wasp-update.zip");
 
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    Console.WriteLine("Downloading the latest version of WASP Lite...");
+                    Console.WriteLine("Downloading the latest version of WASP...");
                     await client.DownloadFileTaskAsync(new Uri(downloadUrl), tempFilePath);
 
                     Console.WriteLine("Extracting the update...");
@@ -46,8 +46,20 @@ namespace WASPUpdater
                 }
 
                 // Restart the main application
-                string mainAppPath = Path.Combine(targetDir, "WASP Lite.exe");
-                Process.Start(mainAppPath);
+                string mainAppPath = Path.Combine(targetDir, "WASP.exe");
+                try
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    {
+                        FileName = mainAppPath,
+                        WorkingDirectory = targetDir
+                    };
+                    Process.Start(startInfo);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Failed to restart the main application: " + ex.Message);
+                }
             }
         }
     }
