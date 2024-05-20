@@ -19,13 +19,13 @@ namespace WASPUpdater
 
             string downloadUrl = args[0];
             string targetDir = args[1];
-            string tempFilePath = Path.Combine(Path.GetTempPath(), "wasp-update.zip");
+            string tempFilePath = Path.Combine(Path.GetTempPath(), "WASP-lite.zip");
 
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    Console.WriteLine("Downloading the latest version of WASP...");
+                    Console.WriteLine("Downloading the latest version of WASP Lite...");
                     await client.DownloadFileTaskAsync(new Uri(downloadUrl), tempFilePath);
 
                     Console.WriteLine("Extracting the update...");
@@ -46,7 +46,7 @@ namespace WASPUpdater
                 }
 
                 // Restart the main application
-                string mainAppPath = Path.Combine(targetDir, "WASP.exe");
+                string mainAppPath = Path.Combine(targetDir, "WASP Lite.exe");
                 try
                 {
                     ProcessStartInfo startInfo = new ProcessStartInfo
