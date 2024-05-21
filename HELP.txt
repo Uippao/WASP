@@ -1,0 +1,89 @@
+﻿WASP Lite help
+=======================
+
+Welcome to the Workspace Access and Storage Portal (WASP)!
+WASP is designed to handle .wsp (WASP Workspace File) files, which are configuration files for opening multiple applications, web links, and executing commands.
+
+WASP Lite is a simplified, console-based version of WASP. The full version of WASP will include a graphical user interface and additional features.
+
+Using WASP Lite:
+----------------
+To use WASP Lite, open a WASP Workspace File and choose to open it with WASP Lite.
+You can use WASP Workspaces to open multiple apps, websites, and execute commands with your specified configuration.
+
+Creating .wsp Files:
+--------------------
+.wsp files are written in YAML format. Below is an explanation of the structure and what is optional or mandatory.
+You can create a new WASP Workspace File with default contents into a path of your choice with the app, or make an empty one by right clicking and choosing New -> New WASP Workspace File.
+
+The basic structure of a .wsp file includes three main sections: files, links, and commands.
+
+Files Section:
+  - Each file entry can contain the following fields, but the mandatory fields have to be specified:
+    - path: (Mandatory) The path to the application executable, or shortcut (a '.lnk' file).
+    - args: (Optional) Arguments to pass to the application. Leave out or set to an empty string if not needed.
+    - workingDirectory: (Optional) The working directory for the application. If not specified, it defaults to the directory of the application executable.
+    - useShellExecute: (Optional) A boolean value indicating whether to use shell execute. Defaults to true if not specified.
+    - verb: (Optional) A verb to use when opening the application. Leave out or set to an empty string if not needed.
+    - maximized: (Optional) A boolean value indicating whether to start the application maximized. Defaults to false if not specified.
+    - delay: (Optional) The delay in milliseconds before starting the application.
+    - order: (Mandatory) The order in which to execute this action relative to others.
+
+Links Section:
+  - Each link entry can contain the following fields, but the mandatory fields have to be specified:
+    - url: (Mandatory) The URL to open.
+    - browser: (Optional) The path to the browser executable. If not specified, the default browser is used.
+    - windowStyle: (Optional) An integer value representing the window style. Defaults to normal (0) if not specified.
+    - delay: (Optional) The delay in milliseconds before opening the link.
+    - order: (Mandatory) The order in which to execute this action relative to others.
+
+Commands Section:
+  - Each command entry can contain the following fields:
+    - type: (Mandatory) The type of command to execute (cmd or powershell).
+    - script: (Mandatory) The script or command to execute.
+    - runAsAdministrator: (Optional) A boolean value indicating whether to run the command as an administrator. Defaults to false.
+    - delay: (Optional) The delay in milliseconds before executing the command.
+    - createNoWindow: (Optional) A boolean value indicating whether to create no window for the command execution. Defaults to false.
+    - order: (Mandatory) The order in which to execute this action relative to others.
+
+Example .wsp File:
+------------------
+files:
+  - path: "C:\\Path\\To\\Application.exe"
+    args: ""
+    workingDirectory: "C:\\Path\\To"
+    useShellExecute: true
+    verb: "open"
+    maximized: false
+    delay: 1000
+    order: 1
+
+links:
+  - url: "http://www.example.com"
+    browser: "C:\\Path\\To\\Browser.exe"
+    windowStyle: 2
+    delay: 2000
+    order: 2
+
+commands:
+  - type: "cmd"
+    script: "echo Hello, World!"
+    runAsAdministrator: false
+    delay: 3000
+    createNoWindow: false
+    order: 3
+
+  - type: "powershell"
+    script: "Get-Process"
+    runAsAdministrator: true
+    delay: 4000
+    createNoWindow: false
+    order: 4
+
+Editing .wsp Files:
+-------------------
+.wsp files can be edited using any text editor. Simply right-click the file, choose 'open with', open with a text editor of choice and edit the file.
+After editing, save the file and re-open it with WASP Lite.
+It is strongly recommended to check the file contents with a YAML validator after editing for mistakes.
+
+Thank you for using WASP Lite!
