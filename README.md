@@ -7,7 +7,6 @@ Welcome to the Workspace Access and Storage Portal (WASP)! This program is desig
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Commands](#commands)
 - [Configuration](#configuration)
 
 ## Features
@@ -45,18 +44,21 @@ files:
     verb: "runas"
     maximized: true
     delay: 5000 # Delay in milliseconds
+    order: 1
 
 links:
   - url: "https://example.com"
     browser: "chrome.exe"
     windowStyle: 1 # 1 for Normal, 2 for Minimized, 3 for Maximized
     delay: 3000 # Delay in milliseconds
+    order: 2
 
 commands:
   - type: "powershell"
     script: "Write-Host 'Hello, World!'"
     runAsAdministrator: true
     delay: 2000 # Delay in milliseconds
+    order: 3
 ```
 
 You can remove optional parameters to use default values. More info by running the application itself, and typing 'help'.
