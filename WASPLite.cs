@@ -8,6 +8,7 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Microsoft.Win32;
 using System.Net.Http.Headers;
+using System.Linq;
 
 namespace WASP
 {
@@ -177,96 +178,123 @@ namespace WASP
 
         private static void ExecuteActions(WspFile wspFile)
         {
-            foreach (var file in wspFile.Files)
+            var actions = wspFile.Files.Cast<object>()
+                .Concat(wspFile.Links.Cast<object>())
+                .Concat(wspFile.Commands.Cast<object>())
+                .OrderBy(a => a switch
+                {
+                    FileEntry file => file.Order,
+                    Link link => link.Order,
+                    Command command => command.Order,
+                    _ => int.MaxValue
+                });
+
+            foreach (var action in actions)
             {
-                if (file.Delay.HasValue)
+                switch (action)
                 {
-                    Thread.Sleep(file.Delay.Value);
-                }
-
-                string defaultWorkingDirectory = Path.GetDirectoryName(file.Path);
-
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = file.Path,
-                    Arguments = file.Args ?? string.Empty,
-                    WorkingDirectory = !string.IsNullOrEmpty(file.WorkingDirectory) ? file.WorkingDirectory : defaultWorkingDirectory,
-                    UseShellExecute = file.UseShellExecute ?? true,
-                    Verb = file.Verb ?? string.Empty,
-                    WindowStyle = file.Maximized ? ProcessWindowStyle.Maximized : ProcessWindowStyle.Normal
-                };
-
-                try
-                {
-                    Process.Start(startInfo);
-                }
-                catch (Exception ex)
-                {
-                    LogError(ex);
+                    case FileEntry file:
+                        ExecuteFile(file);
+                        break;
+                    case Link link:
+                        ExecuteLink(link);
+                        break;
+                    case Command command:
+                        ExecuteCommand(command);
+                        break;
                 }
             }
+        }
 
-            foreach (var link in wspFile.Links)
+        private static void ExecuteFile(FileEntry file)
+        {
+            if (file.Delay.HasValue)
             {
-                if (link.Delay.HasValue)
-                {
-                    Thread.Sleep(link.Delay.Value);
-                }
-
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = link.Browser ?? "explorer.exe",
-                    Arguments = link.Url,
-                    WindowStyle = link.WindowStyle.HasValue ? (ProcessWindowStyle)link.WindowStyle.Value : ProcessWindowStyle.Normal
-                };
-
-                try
-                {
-                    Process.Start(startInfo);
-                }
-                catch (Exception ex)
-                {
-                    LogError(ex);
-                }
+                Thread.Sleep(file.Delay.Value);
             }
 
-            foreach (var command in wspFile.Commands)
+            string defaultWorkingDirectory = Path.GetDirectoryName(file.Path);
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                if (command.Delay.HasValue)
-                {
-                    Thread.Sleep(command.Delay.Value);
-                }
+                FileName = file.Path,
+                Arguments = file.Args ?? string.Empty,
+                WorkingDirectory = !string.IsNullOrEmpty(file.WorkingDirectory) ? file.WorkingDirectory : defaultWorkingDirectory,
+                UseShellExecute = file.UseShellExecute ?? true,
+                Verb = file.Verb ?? string.Empty,
+                WindowStyle = file.Maximized ? ProcessWindowStyle.Maximized : ProcessWindowStyle.Normal
+            };
 
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = command.Type == "powershell" ? "powershell.exe" : "cmd.exe",
-                    Arguments = command.Type == "powershell" ? $"-Command \"{command.Script}\"" : $"/C \"{command.Script}\"",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = command.CreateNoWindow,
-                    Verb = command.RunAsAdministrator ? "runas" : null
-                };
+            try
+            {
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+        }
 
-                try
+        private static void ExecuteLink(Link link)
+        {
+            if (link.Delay.HasValue)
+            {
+                Thread.Sleep(link.Delay.Value);
+            }
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = link.Browser ?? "explorer.exe",
+                Arguments = link.Url,
+                WindowStyle = link.WindowStyle.HasValue ? (ProcessWindowStyle)link.WindowStyle.Value : ProcessWindowStyle.Normal
+            };
+
+            try
+            {
+                Process.Start(startInfo);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+        }
+
+        private static void ExecuteCommand(Command command)
+        {
+            if (command.Delay.HasValue)
+            {
+                Thread.Sleep(command.Delay.Value);
+            }
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = command.Type == "powershell" ? "powershell.exe" : "cmd.exe",
+                Arguments = command.Type == "powershell" ? $"-Command \"{command.Script}\"" : $"/C \"{command.Script}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = command.CreateNoWindow,
+                Verb = command.RunAsAdministrator ? "runas" : null
+            };
+
+            try
+            {
+                using (Process process = Process.Start(startInfo))
                 {
-                    using (Process process = Process.Start(startInfo))
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+
+                    Console.WriteLine(output);
+                    if (!string.IsNullOrEmpty(error))
                     {
-                        string output = process.StandardOutput.ReadToEnd();
-                        string error = process.StandardError.ReadToEnd();
-                        process.WaitForExit();
-
-                        Console.WriteLine(output);
-                        if (!string.IsNullOrEmpty(error))
-                        {
-                            Console.WriteLine("Error: " + error);
-                        }
+                        Console.WriteLine("Error: " + error);
                     }
                 }
-                catch (Exception ex)
-                {
-                    LogError(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
             }
         }
 
@@ -293,6 +321,7 @@ namespace WASP
         public string Verb { get; set; }
         public bool Maximized { get; set; } = false;
         public int? Delay { get; set; }
+        public int Order { get; set; }
     }
 
     public class Link
@@ -301,6 +330,7 @@ namespace WASP
         public string Browser { get; set; }
         public ProcessWindowStyle? WindowStyle { get; set; } = ProcessWindowStyle.Normal;
         public int? Delay { get; set; }
+        public int Order { get; set; }
     }
 
     public class Command
@@ -310,5 +340,6 @@ namespace WASP
         public bool RunAsAdministrator { get; set; } = false;
         public int? Delay { get; set; }
         public bool CreateNoWindow { get; set; } = false;
+        public int Order { get; set; }
     }
 }
