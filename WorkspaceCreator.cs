@@ -24,7 +24,8 @@ namespace WASP
                         UseShellExecute = true,
                         Verb = "open",
                         Maximized = false,
-                        Delay = 1000
+                        Delay = 1000,
+                        Order = 1
                     }
                 },
                 Links = new[]
@@ -34,7 +35,8 @@ namespace WASP
                         Url = "http://www.example.com",
                         Browser = "C:\\Path\\To\\Browser.exe",
                         WindowStyle = ProcessWindowStyle.Normal,
-                        Delay = 2000
+                        Delay = 2000,
+                        Order = 2
                     }
                 },
                 Commands = new[]
@@ -45,7 +47,8 @@ namespace WASP
                         Script = "echo Hello, World!",
                         RunAsAdministrator = false,
                         Delay = 3000,
-                        CreateNoWindow = false
+                        CreateNoWindow = false,
+                        Order = 3
                     }
                 }
             };
