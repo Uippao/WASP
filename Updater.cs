@@ -61,6 +61,7 @@ namespace WASPUpdater
                     Console.WriteLine("Failed to restart the main application: " + ex.Message);
                 }
             }
+            Thread.Sleep(8000);
         }
     }
 
