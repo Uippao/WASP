@@ -1,4 +1,4 @@
-﻿WASP Lite help
+WASP Lite help
 =======================
 
 Welcome to the Workspace Access and Storage Portal (WASP)!
@@ -10,6 +10,7 @@ Using WASP Lite:
 ----------------
 To use WASP Lite, open a WASP Workspace File and choose to open it with WASP Lite.
 You can use WASP Workspaces to open multiple apps, websites, and execute commands with your specified configuration.
+You can now also compile them into batch scripts (.bat) to share them with a friend without WASP Lite (of course we encourage to spread the word).
 
 Creating .wsp Files:
 --------------------
