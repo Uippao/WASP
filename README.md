@@ -16,13 +16,14 @@ Welcome to the Workspace Access and Storage Portal (WASP)! This program is desig
 - **Support for Delays**: Supports delays before executing files, links, or commands.
 - **Custom Working Directories**: Allows specifying custom working directories for executed files.
 - **Shell Execution Options**: Supports various shell execution options for files and commands.
+- **Compilation**: Supports compiling `.wsp` files into `.bat` scripts.
 - **Error Handling**: Logs errors encountered during execution.
 
 ## Installation
 
 1. Go to Releases, and download the `WASP-lite.zip` file.
 2. Extract the ZIP file anywhere you'd like.
-3. Run the application. It always requires Administrator so it can do everything it needs to. You can check the code, it doesn't do malicious stuff.
+3. Run the application. It always requires Administrator so it can do everything it needs to. It's recommended to run the `setup` command.
 4. Now you're ready to start creating Workspace files!
 
 ## Usage
@@ -65,3 +66,6 @@ You can remove optional parameters to use default values. More info by running t
 You should always check the file content you made for errors using a YAML validator. YAML escape characters need to be doubled, this is why for example the backslashes are doubled.
 
 Thank you for using WASP Lite! I might one day release a full version with a GUI, but you have this console app for now.
+```
+
+These updates provide clear instructions and information about the features, usage, and configuration of the WASP Lite application. Let me know if you need any further modifications!
