@@ -27,16 +27,15 @@ namespace WASP
             }
             else
             {
-                RegisterFileType();
-                AddContextMenuEntry();
-
                 Console.WriteLine("Welcome to the Workspace Access and Storage Portal (WASP)!");
                 Console.WriteLine("[LITE VERSION]");
                 Console.WriteLine();
                 Console.WriteLine("This program is designed to handle .wsp files. You can choose to open all .wsp files using WASP!");
                 Console.WriteLine("Commands:");
+                Console.WriteLine("setup - Setup WASP for the first time (not necessary but recommended)");
                 Console.WriteLine("wasp - Open a .wsp file");
                 Console.WriteLine("update - Update the application to the latest version");
+                Console.WriteLine("compile - Compile a .wsp file to .bat file");
                 Console.WriteLine("help - Show information on what is WASP and how to use it");
                 Console.WriteLine("create - Create a new Workspace file with default contents");
                 Console.WriteLine("exit - Exit the program");
@@ -46,10 +45,28 @@ namespace WASP
                     string userInput = Console.ReadLine();
                     switch (userInput.ToLower())
                     {
+                        case "setup":
+                            RegisterFileType();
+                            AddContextMenuEntry();
+                            break;
                         case "wasp":
                             Console.WriteLine("Enter the path to the .wsp file:");
                             string wspFilePath = Console.ReadLine();
                             HandleWspFile(wspFilePath);
+                            break;
+                        case "compile":
+                            Console.WriteLine("Enter the path to the .wsp file:");
+                            string fileToComPile = Console.ReadLine();
+                            string batFilePath = Path.ChangeExtension(fileToComPile, ".bat");
+                            try
+                            {
+                                WspCompiler.CompileWspToBat(fileToComPile, batFilePath);
+                                Console.WriteLine($"Compiled {fileToComPile} to {batFilePath} successfully.");
+                            }
+                            catch (Exception ex)
+                            {
+                                LogError(ex);
+                            }
                             break;
                         case "update":
                             WASP_Lite.UpdaterClass.UpdateApplication();
@@ -108,11 +125,7 @@ namespace WASP
                         defaultIconKey.SetValue("", iconPath);
                     }
 
-                    using (RegistryKey commandKey = key.CreateSubKey(@"shell\open\command"))
-                    {
-                        if (commandKey == null) throw new Exception("Failed to open or create registry key for command.");
-                        commandKey.SetValue("", "\"" + appPath + "\" \"%1\"");
-                    }
+                    
                 }
 
                 Console.WriteLine("File association for .wsp registered successfully.");
@@ -123,6 +136,7 @@ namespace WASP
                 Console.WriteLine("Failed to register file association: " + ex.Message);
             }
         }
+
 
         private static void AddContextMenuEntry()
         {
@@ -140,12 +154,6 @@ namespace WASP
                     }
                 }
 
-                using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(@".wsp\ShellNew"))
-                {
-                    if (key == null) throw new Exception("Failed to open or create registry key for ShellNew.");
-                    key.SetValue("NullFile", "");
-                }
-
                 Console.WriteLine("Context menu entry for creating new WASP Workspace file registered successfully.");
             }
             catch (Exception ex)
@@ -154,6 +162,7 @@ namespace WASP
                 Console.WriteLine("Failed to register context menu entry: " + ex.Message);
             }
         }
+
 
         private static void HandleWspFile(string filePath)
         {
@@ -210,25 +219,45 @@ namespace WASP
                 Thread.Sleep(file.Delay.Value);
             }
 
-            string defaultWorkingDirectory = Path.GetDirectoryName(file.Path);
-
-            ProcessStartInfo startInfo = new ProcessStartInfo
+            if (file.Path.EndsWith(".exe") || file.Path.EndsWith(".bat"))
             {
-                FileName = file.Path,
-                Arguments = file.Args ?? string.Empty,
-                WorkingDirectory = !string.IsNullOrEmpty(file.WorkingDirectory) ? file.WorkingDirectory : defaultWorkingDirectory,
-                UseShellExecute = file.UseShellExecute ?? true,
-                Verb = file.Verb ?? string.Empty,
-                WindowStyle = file.Maximized ? ProcessWindowStyle.Maximized : ProcessWindowStyle.Normal
-            };
+                string defaultWorkingDirectory = Path.GetDirectoryName(file.Path);
 
-            try
-            {
-                Process.Start(startInfo);
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = file.Path,
+                    Arguments = file.Args ?? string.Empty,
+                    WorkingDirectory = !string.IsNullOrEmpty(file.WorkingDirectory) ? file.WorkingDirectory : defaultWorkingDirectory,
+                    UseShellExecute = file.UseShellExecute ?? true,
+                    Verb = file.Verb ?? string.Empty,
+                    WindowStyle = file.Maximized ? ProcessWindowStyle.Maximized : ProcessWindowStyle.Normal
+                };
+
+                try
+                {
+                    Process.Start(startInfo);
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                LogError(ex);
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = file.Path
+                };
+
+                try
+                {
+                    Process.Start(startInfo);
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex);
+                }
             }
         }
 
